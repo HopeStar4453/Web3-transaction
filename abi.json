@@ -1,0 +1,707 @@
+[
+  {
+    "inputs": [
+      { "internalType": "uint16", "name": "_rootChainId", "type": "uint16" },
+      { "internalType": "uint16", "name": "_localChainId", "type": "uint16" },
+      {
+        "internalType": "address",
+        "name": "_rootBridgeAgentAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_lzEndpointAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_localRouterAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_localPortAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  { "inputs": [], "name": "AlreadyExecutedTransaction", "type": "error" },
+  { "inputs": [], "name": "DepositAlreadyRetrieved", "type": "error" },
+  { "inputs": [], "name": "DepositRedeemUnavailable", "type": "error" },
+  {
+    "inputs": [],
+    "name": "DepositRetryUnavailableUseCallout",
+    "type": "error"
+  },
+  { "inputs": [], "name": "ExecutionFailure", "type": "error" },
+  { "inputs": [], "name": "InvalidBranchPortAddress", "type": "error" },
+  { "inputs": [], "name": "InvalidEndpointAddress", "type": "error" },
+  { "inputs": [], "name": "InvalidInput", "type": "error" },
+  { "inputs": [], "name": "InvalidLocalAddress", "type": "error" },
+  { "inputs": [], "name": "InvalidRootBridgeAgentAddress", "type": "error" },
+  { "inputs": [], "name": "LayerZeroUnauthorizedCaller", "type": "error" },
+  { "inputs": [], "name": "LayerZeroUnauthorizedEndpoint", "type": "error" },
+  { "inputs": [], "name": "NotDepositOwner", "type": "error" },
+  { "inputs": [], "name": "UnknownFlag", "type": "error" },
+  { "inputs": [], "name": "UnrecognizedBridgeAgentExecutor", "type": "error" },
+  { "inputs": [], "name": "UnrecognizedRouter", "type": "error" },
+  { "inputs": [], "name": "WrongDepositType", "type": "error" },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "nonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "LogExecute",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "nonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "LogFallback",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "gasLimit",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "remoteBranchExecutionGas",
+        "type": "uint256"
+      }
+    ],
+    "name": "LogGasParams",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "depositNonce",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "RedeemDeposit",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "depositNonce",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "localTokenAddress",
+        "type": "address"
+      }
+    ],
+    "name": "RedeemDeposit",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "bridgeAgentExecutorAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_recipient", "type": "address" },
+      { "internalType": "address", "name": "_hToken", "type": "address" },
+      { "internalType": "address", "name": "_token", "type": "address" },
+      { "internalType": "uint256", "name": "_amount", "type": "uint256" },
+      { "internalType": "uint256", "name": "_deposit", "type": "uint256" }
+    ],
+    "name": "bridgeIn",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_recipient", "type": "address" },
+      {
+        "components": [
+          {
+            "internalType": "uint8",
+            "name": "numberOfAssets",
+            "type": "uint8"
+          },
+          { "internalType": "address", "name": "recipient", "type": "address" },
+          {
+            "internalType": "uint32",
+            "name": "settlementNonce",
+            "type": "uint32"
+          },
+          {
+            "internalType": "address[]",
+            "name": "hTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "tokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "deposits",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct SettlementMultipleParams",
+        "name": "_sParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "bridgeInMultiple",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address payable",
+        "name": "_depositOwnerAndGasRefundee",
+        "type": "address"
+      },
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "callOut",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address payable",
+        "name": "_depositOwnerAndGasRefundee",
+        "type": "address"
+      },
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          { "internalType": "address", "name": "hToken", "type": "address" },
+          { "internalType": "address", "name": "token", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" },
+          { "internalType": "uint256", "name": "deposit", "type": "uint256" }
+        ],
+        "internalType": "struct DepositInput",
+        "name": "_dParams",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "callOutAndBridge",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address payable",
+        "name": "_depositOwnerAndGasRefundee",
+        "type": "address"
+      },
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          {
+            "internalType": "address[]",
+            "name": "hTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "tokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "deposits",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct DepositMultipleInput",
+        "name": "_dParams",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "callOutAndBridgeMultiple",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "callOutSigned",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          { "internalType": "address", "name": "hToken", "type": "address" },
+          { "internalType": "address", "name": "token", "type": "address" },
+          { "internalType": "uint256", "name": "amount", "type": "uint256" },
+          { "internalType": "uint256", "name": "deposit", "type": "uint256" }
+        ],
+        "internalType": "struct DepositInput",
+        "name": "_dParams",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      },
+      { "internalType": "bool", "name": "_hasFallbackToggled", "type": "bool" }
+    ],
+    "name": "callOutSignedAndBridge",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          {
+            "internalType": "address[]",
+            "name": "hTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "tokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "deposits",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct DepositMultipleInput",
+        "name": "_dParams",
+        "type": "tuple"
+      },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      },
+      { "internalType": "bool", "name": "_hasFallbackToggled", "type": "bool" }
+    ],
+    "name": "callOutSignedAndBridgeMultiple",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "depositNonce",
+    "outputs": [{ "internalType": "uint32", "name": "", "type": "uint32" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "settlementNonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "executionState",
+    "outputs": [
+      { "internalType": "uint256", "name": "state", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint16", "name": "_srcChainId", "type": "uint16" },
+      { "internalType": "bytes", "name": "_srcAddress", "type": "bytes" }
+    ],
+    "name": "forceResumeReceive",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "depositNonce", "type": "uint256" }
+    ],
+    "name": "getDeposit",
+    "outputs": [
+      { "internalType": "uint8", "name": "status", "type": "uint8" },
+      { "internalType": "uint88", "name": "isSigned", "type": "uint88" },
+      { "internalType": "address", "name": "owner", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint32", "name": "_depositNonce", "type": "uint32" }
+    ],
+    "name": "getDepositEntry",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "uint8", "name": "status", "type": "uint8" },
+          { "internalType": "uint88", "name": "isSigned", "type": "uint88" },
+          { "internalType": "address", "name": "owner", "type": "address" },
+          {
+            "internalType": "address[]",
+            "name": "hTokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "address[]",
+            "name": "tokens",
+            "type": "address[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "amounts",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "deposits",
+            "type": "uint256[]"
+          }
+        ],
+        "internalType": "struct Deposit",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "localChainId",
+    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "localPortAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "localRouterAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "lzEndpointAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint16", "name": "_srcChainId", "type": "uint16" },
+      { "internalType": "bytes", "name": "_srcAddress", "type": "bytes" },
+      { "internalType": "uint64", "name": "", "type": "uint64" },
+      { "internalType": "bytes", "name": "_payload", "type": "bytes" }
+    ],
+    "name": "lzReceive",
+    "outputs": [{ "internalType": "bool", "name": "success", "type": "bool" }],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_endpoint", "type": "address" },
+      { "internalType": "uint16", "name": "_srcChainId", "type": "uint16" },
+      { "internalType": "bytes", "name": "_srcAddress", "type": "bytes" },
+      { "internalType": "bytes", "name": "_payload", "type": "bytes" }
+    ],
+    "name": "lzReceiveNonBlocking",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint32", "name": "_depositNonce", "type": "uint32" },
+      { "internalType": "address", "name": "_recipient", "type": "address" },
+      {
+        "internalType": "address",
+        "name": "_localTokenAddress",
+        "type": "address"
+      }
+    ],
+    "name": "redeemDeposit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint32", "name": "_depositNonce", "type": "uint32" },
+      { "internalType": "address", "name": "_recipient", "type": "address" }
+    ],
+    "name": "redeemDeposit",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint32", "name": "_depositNonce", "type": "uint32" },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "retrieveDeposit",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_owner", "type": "address" },
+      { "internalType": "uint32", "name": "_depositNonce", "type": "uint32" },
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      }
+    ],
+    "name": "retryDeposit",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint32", "name": "_depositNonce", "type": "uint32" },
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams",
+        "name": "_gParams",
+        "type": "tuple"
+      },
+      { "internalType": "bool", "name": "_hasFallbackToggled", "type": "bool" }
+    ],
+    "name": "retryDepositSigned",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "_settlementNonce",
+        "type": "uint32"
+      },
+      { "internalType": "bytes", "name": "_params", "type": "bytes" },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "gasLimit", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remoteBranchExecutionGas",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct GasParams[2]",
+        "name": "_gParams",
+        "type": "tuple[2]"
+      },
+      { "internalType": "bool", "name": "_hasFallbackToggled", "type": "bool" }
+    ],
+    "name": "retrySettlement",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rootBridgeAgentAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rootChainId",
+    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  { "stateMutability": "payable", "type": "receive" }
+]
