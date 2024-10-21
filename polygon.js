@@ -1,22 +1,23 @@
-import { JsonRpcProvider, Contract, Wallet } from "ethers";
+import { JsonRpcProvider, Contract, Wallet, parseEther } from "ethers";
 import { promises as fs } from 'fs';
-import axios from "axios";
 async function loadABI() {
-    const data = await fs.readFile('./scripts/abi.json', 'utf-8');
+    const data = await fs.readFile('./abi.json', 'utf-8');
     return JSON.parse(data);
 }
 async function loadTokenABI() {
-    const data = await fs.readFile('./scripts/tokenABI.json', 'utf-8');
+    const data = await fs.readFile('./tokenABI.json', 'utf-8');
     return JSON.parse(data);
 }
+import { configDotenv } from "dotenv";
+configDotenv();
 const contractABI = await loadABI();
 const tokenABI = await loadTokenABI();
 const tokenAddress = '0xDDf7d080C82b8048BAAe54e376a3406572429b4e';//underlying
 const agentAddress = '0xf8aae47a6A12552Bc714e47F8d98446d537634aA';//AgentAddress
 const provider = new JsonRpcProvider('https://polygon-bor-rpc.publicnode.com/');
 const signer = new Wallet(process.env.PRIVATE_KEY, provider);
-const tokenContract = new Contract(tokenABI, tokenAddress, signer);
-const agentContract = new Contract(contractABI, agentAddress, signer);
+const tokenContract = new Contract(tokenAddress, tokenABI, signer);
+const agentContract = new Contract(agentAddress, contractABI, signer);
 
 try {
     const tokenAmount = 250000 * 1e18;
@@ -33,12 +34,12 @@ try {
     const dParams = {
         hToken: "0x000be5Cf68aa3E2f0BfD6ACF53EfB06CB2E99941",//local Address
         token: "0xDDf7d080C82b8048BAAe54e376a3406572429b4e",//underlying Address
-        amount: ethers.BigNumber.from("250000000000000000000000"),
-        deposit: ethers.BigNumber.from("250000000000000000000000")
+        amount: parseEther("250000000000000000000000"),
+        deposit: parseEther("250000000000000000000000")
     };
     const gParams = {
-        gasLimit: ethers.BigNumber.from("500000"),
-        remoteBranchExecutionGas: ethers.BigNumber.from("100000000000000")
+        gasLimit: parseEther("500000"),
+        remoteBranchExecutionGas: parseEther("100000000000000")
     };
     const hasFallbackToggled = true;
     const depositTx = await agentContract.callOutSignedAndBridge(
